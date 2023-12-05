@@ -1,5 +1,6 @@
 <?php
-class Plyer{
+class Player
+{
+    public int $id;
     public string $username;
-    
 }
