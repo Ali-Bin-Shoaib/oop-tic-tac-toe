@@ -1,11 +1,22 @@
 <?php
 require_once './Game.php';
 require_once './Player.php';
+require_once './GameMove.php';
 $game = new Game;
-$game->showBoard();
 $player1 = new Player('ali');
-$player2 = new Player('salem');
+$player2 = new Player('ahmed');
+// $player3 = new Player('salem');
 $game->addPlayer($player1);
-$game->addPlayer($player2);
-print_r($game->player1);
-var_dump($game->state);
+$game-> addPlayer($player2);
+// $game->addPlayer($player3);
+$game->move(new GameMove(0, 0, $player1));
+$game->move(new GameMove(0, 1, $player2));
+$game->move(new GameMove(0, 2, $player1));
+$game->move(new GameMove(1, 0, $player2));
+$game->move(new GameMove(1, 1, $player1));
+$game->move(new GameMove(1, 2, $player2));
+$game->move(new GameMove(2, 0, $player1));
+$game->move(new GameMove(2, 1, $player2));
+$game->move(new GameMove(2, 2, $player1));
+$game->move(new GameMove(3, 2, $player2));
+var_dump($game->lastPlayer->username);

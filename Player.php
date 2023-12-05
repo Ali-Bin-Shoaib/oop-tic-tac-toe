@@ -1,12 +1,12 @@
 <?php
 class Player
 {
-    public int $id;
+    public string $id;
 
     public string $username;
     function __construct(string $username)
     {
         $this->username = $username;
-        $this->id = time();
+        $this->id = md5(uniqid());
     }
 }
