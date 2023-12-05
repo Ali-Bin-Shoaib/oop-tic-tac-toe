@@ -80,30 +80,9 @@ class Game
         $symbol = $this->lastPlayer === $this->player1 ? 'X' : 'O';
         $isWin = true;
         if ($this->movesCount >= self::N + 2) {
-            for ($i = $x; $i < self::N; $i++) {
-                for ($j = 0; $j < self::N; $j++) {
-                    if ($this->board[$x][$j] != $symbol) {
-                        $isWin = false;
-                        break;
-                    }
-                }
-                if ($isWin) {
-                    $this->state = GameStatue::FINISHED;
-                    break;
-                }
-                $isWin = true;
-                for ($j = 0; $j < self::N; $j++) {
-                    if ($this->board[$j][$i] != $symbol) {
-                        $isWin = false;
-                        break;
-                    }
-                }
-            }
-            if (!$isWin) {
-                if ($this->checkDiagonal($symbol)) {
-                    $this->state = GameStatue::FINISHED;
-                }
-            }
+            $this->checkHorizontal($x, $symbol) && $this->state = GameStatue::FINISHED;
+            $this->checkVertical($y, $symbol) && $this->state = GameStatue::FINISHED;
+            $this->checkDiagonal($symbol) && $this->state = GameStatue::FINISHED;
         }
     }
     private function checkDiagonal(string $symbol): bool
@@ -113,6 +92,21 @@ class Game
                 return false;
         return true;
     }
+    private function checkHorizontal(int $x, string $symbol): bool
+    {
+        for ($i = 0; $i < self::N; $i++)
+            if ($this->board[$x][$i] != $symbol)
+                return false;
+        return true;
+    }
+    private function checkVertical(int $y, string $symbol): bool
+    {
+        for ($i = 0; $i < self::N; $i++)
+            if ($this->board[$i][$y] != $symbol)
+                return false;
+        return true;
+    }
+
     public function showBoard()
     {
         echo '<table border="1">';
