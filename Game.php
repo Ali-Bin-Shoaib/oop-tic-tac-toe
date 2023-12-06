@@ -4,12 +4,16 @@ require_once './GameStatus.php';
 require_once './GameMove.php';
 class Game
 {
-    public const N = 3;
-    public array $board;
-    public Player $player1, $player2;
-    public GameStatue $state;
-    public Player|null $lastPlayer;
-    public int $movesCount;
+    private const N = 3;
+    private string $gameId;
+    private array $board;
+    private Player $player1, $player2;
+    private GameStatue $state;
+    private GameResult|null $gameResult;
+    private Player|null $lastPlayer;
+    private Player|null $winner;
+    private Player|null $loser;
+    private int $movesCount;
     public function __construct()
     {
         $this->board = [
@@ -18,8 +22,12 @@ class Game
             ['', '', ''],
         ];
         $this->state = GameStatue::AWAITING_PLYERS;
+        $this->gameResult = null;
         $this->lastPlayer = null;
+        $this->winner = null;
+        $this->loser = null;
         $this->movesCount = 0;
+        $this->gameId = uniqid();
     }
     public function addPlayer(Player $player): void
     {
@@ -39,10 +47,19 @@ class Game
         $this->checkIsValidPlayer($gameMove->player);
         $this->checkIsValidMove($gameMove->x, $gameMove->y);
         $this->makeAMove($gameMove);
-        $this->checkWin($gameMove->x, $gameMove->y);
+        if ($this->checkWin($gameMove->x, $gameMove->y, $gameMove->player)) {
+            $this->state = GameStatue::FINISHED;
+            // $this->gameResult = GameResult::WIN;
+        }
+        if ($this->state === GameStatue::FINISHED) {
+            $this->winner = $gameMove->player;
+            $this->loser = $this->player1 === $gameMove->player ? $this->player1 : $this->player2;
+        }
         $this->showBoard();
-        if ($this->state === GameStatue::FINISHED)
-            echo "player {$this->lastPlayer->username} wins the game";
+        // if ($this->state === GameStatue::FINISHED)
+        //     echo "player {$this->lastPlayer->username} wins the game";
+
+        $this->movesCount++;
     }
     private function isValidPlayer(Player $player)
     {
@@ -50,8 +67,10 @@ class Game
             if ($this->player1 === $player)
                 throw new Exception("You can't play with yourself.");
             $this->player2 = $player;
+            $this->player2->id = uniqid();
         } else {
             $this->player1 = $player;
+            $this->player1->id = uniqid();
         }
     }
     private function checkIsValidMove(int $x, int $y)
@@ -75,14 +94,29 @@ class Game
         $this->lastPlayer = $gameMove->player;
         $this->movesCount++;
     }
-    private function checkWin(int $x, int $y)
+    private function checkWin(int $x, int $y, $player)
     {
         $symbol = $this->lastPlayer === $this->player1 ? 'X' : 'O';
+        $flag = false;
         if ($this->movesCount >= self::N + 2) {
-            $this->checkHorizontal($x, $symbol) && $this->state = GameStatue::FINISHED;
-            $this->checkVertical($y, $symbol) && $this->state = GameStatue::FINISHED;
-            $this->checkDiagonal($symbol) && $this->state = GameStatue::FINISHED;
+            if ($this->checkHorizontal($x, $symbol)) {
+                $this->state = GameStatue::FINISHED;
+                $flag = true;
+            }
+            if ($this->checkVertical($y, $symbol)) {
+                $this->state = GameStatue::FINISHED;
+                $flag = true;
+            }
+            if ($this->checkDiagonal($symbol)) {
+                $this->state = GameStatue::FINISHED;
+                $flag = true;
+            }
+            // if ($flag) {
+            //     $this->winner = $player;
+            //     $this->loser = $this->player1 === $player ? $this->player1 : $this->player2;
+            // }
         }
+        return $flag;
     }
     private function checkDiagonal($symbol)
     {
@@ -117,7 +151,19 @@ class Game
                 return false;
         return true;
     }
-
+    private function checkDraw($currentMovesCount)
+    {
+        if ($currentMovesCount === 9)
+            $this->gameResult = GameResult::DRAW;
+    }
+    public function getGameId(){
+        return $this->gameId;
+    }
+    public function showPlayers()
+    {
+        // echo 'game id'.$this->gameId;
+        print_r([$this->player1->username, $this->player2->username]);
+    }
     public function showBoard()
     {
         echo '<table border="1">';
