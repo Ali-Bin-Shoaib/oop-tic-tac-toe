@@ -85,7 +85,19 @@ class Game
             $this->checkDiagonal($symbol) && $this->state = GameStatue::FINISHED;
         }
     }
-    private function checkDiagonal(string $symbol): bool
+    private function checkDiagonal($symbol)
+    {
+        return  $this->checkDiagonalRtl($symbol) ? true : $this->checkDiagonalLtr($symbol);
+    }
+    private function checkDiagonalRtl(string $symbol): bool
+    {
+        for ($i = 0; $i < self::N; $i++)
+            if ($this->board[$i][(self::N - 1) - $i] != $symbol)
+                return false;
+
+        return true;
+    }
+    private function checkDiagonalLtr(string $symbol): bool
     {
         for ($i = 0; $i < self::N; $i++)
             if ($this->board[$i][$i] != $symbol)
