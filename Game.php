@@ -78,7 +78,6 @@ class Game
     private function checkWin(int $x, int $y)
     {
         $symbol = $this->lastPlayer === $this->player1 ? 'X' : 'O';
-        $isWin = true;
         if ($this->movesCount >= self::N + 2) {
             $this->checkHorizontal($x, $symbol) && $this->state = GameStatue::FINISHED;
             $this->checkVertical($y, $symbol) && $this->state = GameStatue::FINISHED;
