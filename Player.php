@@ -9,7 +9,6 @@ class Player
     function __construct(string $username)
     {
         $this->username = $username;
-        // $this->id = uniqid();
     }
 
     public function createGame()
@@ -18,7 +17,6 @@ class Player
         $this->currentGame->addPlayer($this);
         return $this->currentGame->getGameId();
     }
-    //    public function joinGame(Game $game,string $gameId)
     public function joinGame(Game $game)
 
     {

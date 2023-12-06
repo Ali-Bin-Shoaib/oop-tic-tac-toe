@@ -33,9 +33,7 @@ class Game
     {
         if ($this->state !== GameStatue::AWAITING_PLYERS)
             throw new Exception('Can not add more than tow players in a game.');
-
         $this->isValidPlayer($player);
-
         if (isset($this->player1) && isset($this->player2)) {
             $this->state = GameStatue::IN_PLAY;
         }
@@ -44,22 +42,27 @@ class Game
     {
         if ($this->state !== GameStatue::IN_PLAY)
             throw new Exception('Game is finished.');
-        $this->checkIsValidPlayer($gameMove->player);
+        $this->checkIsValidPlayerToMove($gameMove->player);
         $this->checkIsValidMove($gameMove->x, $gameMove->y);
         $this->makeAMove($gameMove);
-        if ($this->checkWin($gameMove->x, $gameMove->y, $gameMove->player)) {
+        if ($this->checkWin($gameMove->x, $gameMove->y)) {
             $this->state = GameStatue::FINISHED;
-            // $this->gameResult = GameResult::WIN;
+            $this->gameResult = GameResult::WIN;
         }
         if ($this->state === GameStatue::FINISHED) {
-            $this->winner = $gameMove->player;
-            $this->loser = $this->player1 === $gameMove->player ? $this->player1 : $this->player2;
+            if ($this->gameResult === GameResult::WIN) {
+                $this->winner = $gameMove->player;
+                $this->loser = ($this->player1 === $gameMove->player) ? $this->player2 : $this->player1;
+            }
+            // if ($this->gameResult === GameResult::DRAW);
         }
         $this->showBoard();
-        // if ($this->state === GameStatue::FINISHED)
-        //     echo "player {$this->lastPlayer->username} wins the game";
 
         $this->movesCount++;
+        if ($this->movesCount === count($this->board) && $this->gameResult !== GameResult::WIN) {
+            $this->gameResult = GameResult::DRAW;
+            $this->state = GameStatue::FINISHED;
+        }
     }
     private function isValidPlayer(Player $player)
     {
@@ -78,7 +81,7 @@ class Game
         if ($x >= self::N || $y >= self::N || !empty($this->board[$x][$y]))
             throw new Exception("Invalid Move! " . var_dump(json_encode(["x" => $x, "y" => $y])));
     }
-    private function checkIsValidPlayer(Player $player)
+    private function checkIsValidPlayerToMove(Player $player)
     {
         if (isset($this->lastPlayer) && $this->lastPlayer === $player)
             throw new Exception("{$player->username} try to make two moves.");
@@ -94,29 +97,19 @@ class Game
         $this->lastPlayer = $gameMove->player;
         $this->movesCount++;
     }
-    private function checkWin(int $x, int $y, $player)
+    private function checkWin(int $x, int $y)
     {
         $symbol = $this->lastPlayer === $this->player1 ? 'X' : 'O';
         $flag = false;
         if ($this->movesCount >= self::N + 2) {
-            if ($this->checkHorizontal($x, $symbol)) {
-                $this->state = GameStatue::FINISHED;
-                $flag = true;
-            }
-            if ($this->checkVertical($y, $symbol)) {
-                $this->state = GameStatue::FINISHED;
-                $flag = true;
-            }
-            if ($this->checkDiagonal($symbol)) {
-                $this->state = GameStatue::FINISHED;
-                $flag = true;
-            }
-            // if ($flag) {
-            //     $this->winner = $player;
-            //     $this->loser = $this->player1 === $player ? $this->player1 : $this->player2;
-            // }
+            if ($this->checkHorizontal($x, $symbol))
+                return true;
+            if ($this->checkVertical($y, $symbol))
+                return true;
+            if ($this->checkDiagonal($symbol))
+                return true;
         }
-        return $flag;
+        return false;
     }
     private function checkDiagonal($symbol)
     {
@@ -127,7 +120,6 @@ class Game
         for ($i = 0; $i < self::N; $i++)
             if ($this->board[$i][(self::N - 1) - $i] != $symbol)
                 return false;
-
         return true;
     }
     private function checkDiagonalLtr(string $symbol): bool
@@ -151,17 +143,16 @@ class Game
                 return false;
         return true;
     }
-    private function checkDraw($currentMovesCount)
+    // private function checkDraw($currentMovesCount)
+    // {
+    //     if ($currentMovesCount === 9)
+    // }
+    public function getGameId()
     {
-        if ($currentMovesCount === 9)
-            $this->gameResult = GameResult::DRAW;
-    }
-    public function getGameId(){
         return $this->gameId;
     }
     public function showPlayers()
     {
-        // echo 'game id'.$this->gameId;
         print_r([$this->player1->username, $this->player2->username]);
     }
     public function showBoard()
